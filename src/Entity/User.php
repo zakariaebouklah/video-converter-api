@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -19,6 +21,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
+    /**
+     * @var string[] $roles
+     */
     #[ORM\Column]
     private array $roles = [];
 
@@ -26,7 +31,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
-    private ?string $password = null;
+    private string $password;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Conversion::class)]
+    private Collection $conversions;
+
+    public function __construct()
+    {
+        $this->conversions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -67,6 +80,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return array_unique($roles);
     }
 
+    /**
+     * @param string[] $roles
+     * @return $this
+     */
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
@@ -92,9 +109,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Conversion>
+     */
+    public function getConversions(): Collection
+    {
+        return $this->conversions;
+    }
+
+    public function addConversion(Conversion $conversion): self
+    {
+        if (!$this->conversions->contains($conversion)) {
+            $this->conversions->add($conversion);
+            $conversion->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConversion(Conversion $conversion): self
+    {
+        if ($this->conversions->removeElement($conversion)) {
+            // set the owning side to null (unless already changed)
+            if ($conversion->getUser() === $this) {
+                $conversion->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

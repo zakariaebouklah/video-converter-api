@@ -19,6 +19,7 @@
         "symfony/flex": "^2",
         "symfony/framework-bundle": "6.2.*",
         "symfony/maker-bundle": "^1.48",
+        "symfony/mime": "6.2.*",
         "symfony/property-access": "6.2.*",
         "symfony/property-info": "6.2.*",
         "symfony/runtime": "6.2.*",
@@ -63,7 +64,8 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "phpstan": "vendor/bin/phpstan analyse src"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -73,5 +75,8 @@
             "allow-contrib": false,
             "require": "6.2.*"
         }
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.9"
     }
 }
