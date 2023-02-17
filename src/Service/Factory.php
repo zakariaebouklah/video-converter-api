@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use _PHPStan_d3e3292d7\Symfony\Component\Process\Exception\ProcessFailedException;
-use _PHPStan_d3e3292d7\Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 use App\Entity\Conversion;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -25,7 +25,7 @@ class Factory
         $this->extractor = $extractor;
     }
 
-    public function convertMP3(Conversion $conversion): string
+    public function convertMP3(Conversion $conversion): void
     {
         /**
          * @var string $url
@@ -37,7 +37,13 @@ class Factory
 
         $conversion->setStatus(Conversion::STATUSES[1]);
 
-        $proc = new Process(["{$this->projectDir}\bin\yt-dlp", "-f", "bestaudio", "--extract-audio", "--audio-format", "mp3", "--audio-quality", "0", "{$url}", "-o", "audios/{$v_id}.mp3"]);
+        /**
+         * TODO: test if file converted already don't do the conversion instead change output name.
+         */
+
+        $outputPath = "audios/{$v_id}.mp3";
+
+        $proc = new Process(["{$this->projectDir}\bin\yt-dlp", "-f", "bestaudio", "--extract-audio", "--audio-format", "mp3", "--audio-quality", "0", $url, "-o", $outputPath]);
         $proc->run();
 
         if(!$proc->isSuccessful()) throw new ProcessFailedException($proc);
@@ -45,14 +51,14 @@ class Factory
         $conversion->setStatus(Conversion::STATUSES[2]);
         $conversion->setFinishedAt(new \DateTimeImmutable());
         $conversion->setFormat("mp3");
+        $conversion->setFilePath($outputPath);
 
         $this->manager->persist($conversion);
         $this->manager->flush();
 
-        return "audios/{$v_id}.mp3";
     }
 
-    public function convertMP4(Conversion $conversion): string
+    public function convertMP4(Conversion $conversion): void
     {
         /**
          * @var string $url
@@ -64,7 +70,9 @@ class Factory
 
         $conversion->setStatus(Conversion::STATUSES[1]);
 
-        $proc = new Process(["{$this->projectDir}\bin\yt-dlp", "-S ext:mp4:m4a", "{$url}", "-o", "videos/{$v_id}.mp4"]);
+        $outputPath = "videos/{$v_id}.mp4";
+
+        $proc = new Process(["{$this->projectDir}\bin\yt-dlp", "-S ext:mp4:m4a", $url, "-o", $outputPath]);
         $proc->run();
 
         if(!$proc->isSuccessful()) throw new ProcessFailedException($proc);
@@ -72,11 +80,10 @@ class Factory
         $conversion->setStatus(Conversion::STATUSES[2]);
         $conversion->setFinishedAt(new \DateTimeImmutable());
         $conversion->setFormat("mp4");
+        $conversion->setFilePath($outputPath);
 
         $this->manager->persist($conversion);
         $this->manager->flush();
-
-        return "videos/{$v_id}.mp4";
 
     }
 }

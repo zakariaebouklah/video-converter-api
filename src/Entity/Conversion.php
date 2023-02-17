@@ -34,6 +34,9 @@ class Conversion
     #[ORM\Column(type: Types::TEXT)]
     private ?string $ytUrl = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $filePath = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -107,6 +110,18 @@ class Conversion
     public function setYtUrl(string $ytUrl): self
     {
         $this->ytUrl = $ytUrl;
+
+        return $this;
+    }
+
+    public function getFilePath(): ?string
+    {
+        return $this->filePath;
+    }
+
+    public function setFilePath(?string $filePath): self
+    {
+        $this->filePath = $filePath;
 
         return $this;
     }
